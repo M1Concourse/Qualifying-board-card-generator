@@ -1153,8 +1153,10 @@ const M1_LOGO = 'https://cdn.prod.website-files.com/67f16098a1aa4919ed9037c0/6a3
 })();
 
 // Reference photo of a trackside qualifying / timing tower board used as the
-// generation background plate.
-const BOARD_BG = 'data:image/jpeg;base64,PLACEHOLDER_TIMING_TOWER_BACKGROUND';
+// generation background plate. Leave as null until a real base64 image (or
+// hosted URL) is dropped in here — sending an invalid placeholder to fal.ai
+// causes a 422 "result fetch failed" error.
+const BOARD_BG = null;
 
 // ── Fake lap time generator ─────────────────────────────────────────────
 // Produces a plausible-looking lap time (m:ss.mmm) and grid position per
@@ -1245,7 +1247,11 @@ async function generateQualifyingBoard() {
     // ── Step 3: Send fan photo directly to fal.ai kontext ─────────────────
     statusEl.textContent = 'AI is building your timing tower…';
 
-    const promptText = `Photorealistic photo of a large trackside qualifying results / timing tower screen at a race track, glowing LED scoreboard style with green and amber digits. The fan from image 1 appears in a round driver headshot tile on the leaderboard, positioned at grid slot ${position}, next to a bold readout of the lap time "${lapTime}" and the class label "${selectedClass.name.toUpperCase()}". CRITICAL: Preserve the fan's EXACT skin tone, ethnicity, facial features, hair color, hair texture, and overall appearance from image 1 without altering them — only place their likeness into the headshot tile on the board. Background shows a blurred race track paddock with race cars and grandstands at golden hour, motorsport event atmosphere, cinematic lighting, high detail, 4k.`;
+    const promptText = `Photorealistic photo of a large trackside qualifying results / timing tower screen at a race track, glowing LED scoreboard style with green and amber digits. The fan from the reference photo appears in a round driver headshot tile on the leaderboard, positioned at grid slot ${position}, next to a bold readout of the lap time "${lapTime}" and the class label "${selectedClass.name.toUpperCase()}". CRITICAL: Preserve the fan's EXACT skin tone, ethnicity, facial features, hair color, hair texture, and overall appearance from the reference photo without altering them — only place their likeness into the headshot tile on the board. Background shows a blurred race track paddock with race cars and grandstands at golden hour, motorsport event atmosphere, cinematic lighting, high detail, 4k.`;
+
+    // Only include BOARD_BG once a real reference image is set — an invalid
+    // placeholder here causes fal.ai to reject the request (422).
+    const imageUrls = BOARD_BG ? [fanResized, BOARD_BG] : [fanResized];
 
     const falResp = await fetch('https://queue.fal.run/fal-ai/flux-pro/kontext/multi', {
       method: 'POST',
@@ -1255,7 +1261,7 @@ async function generateQualifyingBoard() {
       },
       body: JSON.stringify({
         prompt: promptText,
-        image_urls: [fanResized, BOARD_BG],
+        image_urls: imageUrls,
         num_images: 1,
         image_size: 'square_hd',
         guidance_scale: 4,
