@@ -449,6 +449,19 @@
     text-transform: uppercase;
     color: #666;
   }
+  .commentary-line {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-top: 8px;
+    font-size: 13px;
+    font-style: italic;
+    color: #ccc;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .commentary-line::before { content: "🎙️ "; font-style: normal; }
   .ai-caption-box {
     background: #161616;
     border: 1px solid #2a2a2a;
@@ -846,6 +859,7 @@
         </div>
         <div class="lap-time-label" id="result-class-label">GT3</div>
       </div>
+      <div class="commentary-line" id="result-commentary"></div>
 
       <!-- Name below image -->
       <div style="background:#161616; border:1px solid #2a2a2a; border-radius:10px; padding:20px 20px 16px; margin-top:12px; text-align:center; display:flex; flex-direction:column; gap:10px;">
@@ -1183,6 +1197,66 @@ function formatLapTime(totalSeconds, classId) {
   return `${m}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
 }
 
+// ── Commentary / humor bank ───────────────────────────────────────────────
+// Tiered on where the fake position lands, with a couple of class-specific
+// one-liners mixed in so the joke actually matches what they "raced."
+const COMMENTARY_BY_TIER = {
+  elite: [ // P1
+    "Somebody call the stewards, that's not a lap time, that's a restraining order.",
+    "P1 and not even out of breath. Show-off.",
+    "The rest of the grid would like a word.",
+    "Pole position. Ego: also in pole position.",
+    "That lap just got framed and hung in the M1 lobby.",
+  ],
+  podium: [ // P2-3
+    "So close to the top step you could taste the champagne. Mostly you tasted regret.",
+    "Podium finish! Bring your own trophy, we ran out.",
+    "One more tenth and this would've been a very different post.",
+    "Officially faster than everyone you'll ever bring this up to.",
+    "Podium energy, backmarker budget.",
+  ],
+  midpack: [ // P4-7
+    "Solidly mid-pack — the racing equivalent of a firm handshake.",
+    "Not first, not last, extremely comfortable with that.",
+    "This is a 'nobody's writing a documentary about it' kind of lap.",
+    "Respectable. Forgettable. Respectably forgettable.",
+    "Grid slot secured through sheer competence and mild luck.",
+  ],
+  backmarker: [ // P8-12
+    "Technically still qualified. Legally, still a driver.",
+    "The car in front lapped you emotionally, not physically. Yet.",
+    "P{POS} and proud, mostly because the alternative was walking.",
+    "Somewhere, a crew chief is quietly rewriting the setup notes.",
+    "That lap time is less 'result' and more 'cry for help.'",
+  ],
+};
+
+const COMMENTARY_BY_CLASS = {
+  gt3: ["The tires filed a complaint.", "Downforce: theoretical."],
+  prototype: ["Aero package earning its keep out there.", "That's LMP-adjacent bravery."],
+  vintage: ["No traction control, no power steering, no regrets.", "Driven like it still has a warranty. It does not."],
+  time_attack: ["Every tenth mattered. Some tenths mattered more than others.", "Cones were involved. Cones survived."],
+  drift: ["Judges loved the angle, questioned the life choices.", "Smoke show rated 10/10, apex rated 4/10."],
+  burnout: ["Tires: sacrificed. Crowd: delighted.", "That's not a lap time, that's a smoke signal."],
+};
+
+function tierForPosition(position) {
+  if (position === 1) return 'elite';
+  if (position <= 3) return 'podium';
+  if (position <= 7) return 'midpack';
+  return 'backmarker';
+}
+
+function getRandomCommentary(position, classId) {
+  const tier = tierForPosition(position);
+  const tierLines = COMMENTARY_BY_TIER[tier];
+  const classLines = COMMENTARY_BY_CLASS[classId] || [];
+  // Weight toward tier lines, occasionally swap in a class-flavored one
+  const pool = Math.random() < 0.35 && classLines.length ? classLines : tierLines;
+  const raw = pool[Math.floor(Math.random() * pool.length)];
+  return raw.replace('{POS}', String(position));
+}
+
 function generateFakeLapTime(classId) {
   const range = CLASS_LAP_RANGES[classId] || CLASS_LAP_RANGES.gt3;
   const totalSeconds = range.min + Math.random() * (range.max - range.min);
@@ -1190,6 +1264,8 @@ function generateFakeLapTime(classId) {
   return {
     lapTime: formatLapTime(totalSeconds, classId),
     position: `P${position}`,
+    positionNum: position,
+    commentary: getRandomCommentary(position, classId),
   };
 }
 
@@ -1239,15 +1315,15 @@ async function generateQualifyingBoard() {
 
     const fanResized = await resizeToDataURL(fanPhotoDataURL, 1024);
 
-    // ── Step 2: Roll a fake lap time / grid position for this class ───────
-    const { lapTime, position } = generateFakeLapTime(selectedClass.id);
+    // ── Step 2: Roll a fake lap time / grid position / commentary for this class ──
+    const { lapTime, position, positionNum, commentary } = generateFakeLapTime(selectedClass.id);
     lapTimeText = lapTime;
     lapPosition = position;
 
     // ── Step 3: Send fan photo directly to fal.ai kontext ─────────────────
     statusEl.textContent = 'AI is building your timing tower…';
 
-    const promptText = `Photorealistic photo of a large trackside qualifying results / timing tower screen at a race track, glowing LED scoreboard style with green and amber digits. The fan from the reference photo appears in a round driver headshot tile on the leaderboard, positioned at grid slot ${position}, next to a bold readout of the lap time "${lapTime}" and the class label "${selectedClass.name.toUpperCase()}". CRITICAL: Preserve the fan's EXACT skin tone, ethnicity, facial features, hair color, hair texture, and overall appearance from the reference photo without altering them — only place their likeness into the headshot tile on the board. Background shows a blurred race track paddock with race cars and grandstands at golden hour, motorsport event atmosphere, cinematic lighting, high detail, 4k.`;
+    const promptText = `Photorealistic photo of a large trackside qualifying results / timing tower screen at a race track, glowing LED scoreboard style with green and amber panels and abstract decorative digits (the exact numbers do not need to be legible or readable — keep them stylized). The fan from the reference photo appears in a round driver headshot tile mounted on the leaderboard. CRITICAL: Preserve the fan's EXACT skin tone, ethnicity, facial features, hair color, hair texture, and overall appearance from the reference photo without altering them — only place their likeness into the headshot tile on the board. Background shows a blurred race track paddock with race cars and grandstands at golden hour, motorsport event atmosphere, cinematic lighting, high detail, 4k. Do not attempt to spell out any words or numbers on the board — keep all board text abstract and decorative.`;
 
     // Only include BOARD_BG once a real reference image is set — an invalid
     // placeholder here causes fal.ai to reject the request (422).
@@ -1284,14 +1360,14 @@ async function generateQualifyingBoard() {
     statusEl.textContent = 'Writing your caption…';
 
     const captionTemplates = [
-      `Topped the board with a ${lapTimeText} in ${selectedClass.name} at the American Speed Festival — ${lapPosition}! 🏁`,
-      `Set the pace on the qualifying board at @m1concourse — ${lapTimeText} in ${selectedClass.name}, sitting ${lapPosition}! 🏁`,
-      `Lit up the timing tower at the American Speed Festival — ${lapTimeText}, ${lapPosition} in ${selectedClass.name}! 🏁`,
-      `Qualifying board says it all — ${lapPosition}, ${lapTimeText}, ${selectedClass.name} class at M1 Concourse! 🏁`,
-      `American Speed Festival qualifying moment I'll never forget — ${lapTimeText} good for ${lapPosition}! 🏁`
+      `Topped the board with a ${lapTimeText} in ${selectedClass.name} at the American Speed Festival — ${lapPosition}! ${commentary} 🏁`,
+      `Set the pace on the qualifying board at @m1concourse — ${lapTimeText} in ${selectedClass.name}, sitting ${lapPosition}. ${commentary} 🏁`,
+      `Lit up the timing tower at the American Speed Festival — ${lapTimeText}, ${lapPosition} in ${selectedClass.name}. ${commentary} 🏁`,
+      `Qualifying board says it all — ${lapPosition}, ${lapTimeText}, ${selectedClass.name} class at M1 Concourse. ${commentary} 🏁`,
+      `American Speed Festival qualifying moment I'll never forget — ${lapTimeText} good for ${lapPosition}. ${commentary} 🏁`
     ];
     const caption = captionTemplates[Math.floor(Math.random() * captionTemplates.length)];
-    const scene = `A fan's face on a glowing trackside qualifying board at M1 Concourse during the American Speed Festival, showing ${lapPosition} with a lap time of ${lapTimeText} in the ${selectedClass.name} class, race cars blurred in the background.`;
+    const scene = `A fan's face on a glowing trackside qualifying board at M1 Concourse during the American Speed Festival, showing ${lapPosition} with a lap time of ${lapTimeText} in the ${selectedClass.name} class, race cars blurred in the background. Trackside commentary: "${commentary}"`;
 
     clearInterval(statusInterval);
 
@@ -1305,6 +1381,7 @@ async function generateQualifyingBoard() {
     document.getElementById('result-position').textContent = lapPosition;
     document.getElementById('result-lap-time').textContent = lapTimeText;
     document.getElementById('result-class-label').textContent = selectedClass.name;
+    document.getElementById('result-commentary').textContent = commentary;
 
     const fullCaption = `${caption} 🏁\n\n#M1Concourse #AmericanSpeedFestival #${selectedClass.name.replace(/\s/g,'')} #ASF2026 @m1concourse`;
     document.getElementById('share-caption-preview').textContent = fullCaption;
