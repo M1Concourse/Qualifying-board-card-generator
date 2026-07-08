@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Qualifying Board Generator | M1 Concourse × American Speed Festival</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --m1-red: #d0021b;
+    --m1-black: #111111;
+    --m1-white: #ffffff;
+    --m1-gray: #f4f4f4;
+    --m1-gray-mid: #cccccc;
+    --m1-gray-dark: #555555;
+    --board-green: #00e05a;
+    --board-amber: #ffb400;
+    --radius: 8px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: 'Archivo', sans-serif;
+    background: var(--m1-black);
+    color: var(--m1-white);
+    margin: 0;
+    padding: 0;
+  }
+
+  #main-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+  }
+
+  /* ── Header ── */
+  header {
+    background: #000000;
+    border-bottom: 3px solid var(--m1-red);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-box {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+  .header-logo {
+    height: 38px;
+    width: auto;
+    display: block;
+  }
+  .event-badge {
+    margin-left: auto;
+    background: var(--m1-red);
+    color: var(--m1-white);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 4px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border-bottom: 1px solid #222;
+    padding: 24px 24px 20px;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--m1-red);
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 5vw, 44px);
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--m1-white);
+    margin-bottom: 12px;
+  }
+  .hero h1 em { color: var(--m1-red); font-style: normal; }
+  .hero p {
+    font-size: 15px;
+    color: #aaa;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── Steps indicator ── */
+  .steps-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    padding: 20px 24px 0;
+    background: #0d0d0d;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #444;
+    padding: 8px 16px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .step-item.active { color: var(--m1-white); border-bottom-color: var(--m1-red); }
+  .step-item.done { color: var(--m1-red); }
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #222;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    transition: background 0.2s;
+  }
+  .step-item.active .step-num { background: var(--m1-red); color: #fff; }
+  .step-item.done .step-num { background: var(--m1-red); color: #fff; }
+
+  /* ── Main content ── */
+  main {
+    flex: 1;
+    padding: 24px 24px 32px;
+    max-width: 780px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Step 1: Photo options ── */
+  .photo-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .photo-option-btn {
+    background: #161616;
+    border: 2px solid #2a2a2a;
+    border-radius: var(--radius-lg);
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    font-family: 'Archivo', sans-serif;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .photo-option-btn:hover { border-color: var(--m1-red); background: #1e1010; }
+  .photo-option-icon {
+    width: 52px; height: 52px;
+    border: 2px solid #333;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .photo-option-title { font-size: 15px; font-weight: 700; }
+  .photo-option-sub { font-size: 11px; color: #666; line-height: 1.4; }
+
+  /* ── Camera viewfinder ── */
+  .camera-wrap {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    background: #0d0d0d;
+    border: 2px solid #222;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .camera-wrap.active { display: flex; }
+  #camera-video {
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--m1-red);
+    background: #111;
+    transform: scaleX(-1); /* mirror for selfie feel */
+  }
+  .camera-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .capture-btn {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: var(--m1-red);
+    border: 4px solid #fff;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .capture-btn:hover { background: #b50218; }
+  .capture-btn:active { transform: scale(0.93); }
+  .camera-cancel-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #666;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px; font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .camera-cancel-btn:hover { border-color: #555; color: #aaa; }
+  .flip-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #666;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px; font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .flip-btn:hover { border-color: #555; color: #aaa; }
+
+  /* ── Upload drop zone (shown when upload chosen) ── */
+  .upload-zone {
+    display: none;
+    border: 2px dashed #333;
+    border-radius: var(--radius-lg);
+    padding: 44px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #161616;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .upload-zone.active { display: block; }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--m1-red);
+    background: #1e1010;
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-icon {
+    width: 52px; height: 52px;
+    border: 2px solid #333;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    font-size: 22px;
+  }
+  .upload-title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .upload-sub { font-size: 12px; color: #666; }
+  .upload-sub strong { color: var(--m1-red); }
+
+  /* ── Preview ── */
+  .preview-wrap {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .preview-wrap img {
+    width: 180px; height: 180px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--m1-red);
+  }
+  .preview-actions { display: flex; gap: 10px; }
+  .change-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px; font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .change-btn:hover { border-color: #666; color: #fff; }
+
+  #camera-canvas { display: none; }
+
+  /* ── Step 2: Session / class grid ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--m1-red);
+    margin-bottom: 20px;
+  }
+  .class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .class-card {
+    background: #161616;
+    border: 2px solid #222;
+    border-radius: var(--radius-lg);
+    padding: 20px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .class-card:hover { border-color: #555; background: #1e1e1e; }
+  .class-card.selected { border-color: var(--m1-red); background: #1e1010; }
+  .class-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 12px;
+    color: var(--m1-red);
+    font-weight: 700;
+  }
+  .class-icon { font-size: 28px; margin-bottom: 10px; }
+  .class-name {
+    font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 3px;
+  }
+  .class-sub {
+    font-size: 10px; font-weight: 600; color: #666; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    background: var(--m1-red);
+    color: #fff;
+    border: none;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: #b50218; }
+  .btn-primary:active { transform: scale(0.99); }
+  .btn-primary:disabled { background: #444; cursor: not-allowed; color: #777; }
+  .btn-outline {
+    background: transparent;
+    color: #aaa;
+    border: 1px solid #333;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-outline:hover { border-color: #555; color: #fff; }
+
+  /* ── Generating state ── */
+  .generating-screen {
+    text-align: center;
+    padding: 60px 24px;
+  }
+  .spinner-track {
+    width: 64px; height: 64px;
+    border: 3px solid #222;
+    border-top-color: var(--m1-red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 24px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .gen-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .gen-sub { font-size: 14px; color: #666; }
+
+  /* ── Result ── */
+  #result-canvas-wrap {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #000;
+    margin-bottom: 24px;
+    line-height: 0;
+  }
+  #result-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .lap-time-strip {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Roboto Mono', monospace;
+  }
+  .lap-time-pos {
+    background: var(--board-green);
+    color: #001a08;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+  .lap-time-value {
+    color: var(--board-amber);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+  .lap-time-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #666;
+  }
+  .ai-caption-box {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-left: 3px solid var(--m1-red);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 24px;
+  }
+  .ai-caption-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--m1-red); margin-bottom: 8px;
+  }
+  .ai-caption-text { font-size: 14px; color: #ccc; line-height: 1.65; }
+
+  /* ── Share section ── */
+  .share-section { margin-bottom: 32px; }
+  /* ── Terms & Conditions modal ── */
+  .tc-overlay {
+    background: var(--m1-black);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 16px 32px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  .tc-modal {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-top: 3px solid var(--m1-red);
+    border-radius: var(--radius-lg);
+    max-width: 480px;
+    width: 100%;
+    padding: 24px 20px;
+    box-sizing: border-box;
+  }
+  .tc-modal h2 {
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .tc-modal .tc-sub {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .tc-scroll {
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: var(--radius);
+    padding: 14px;
+    height: 160px;
+    overflow-y: auto;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .tc-scroll h4 { color: #ccc; margin: 10px 0 3px; font-size: 11px; }
+  .tc-checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .tc-checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    accent-color: var(--m1-red);
+    margin-top: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .tc-checkbox-row label {
+    font-size: 11px;
+    color: #aaa;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .tc-checkbox-row label strong { color: #fff; }
+
+  .share-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #555; margin-bottom: 14px;
+  }
+  .share-caption-box {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .share-caption-box p { font-size: 13px; color: #bbb; line-height: 1.6; }
+  .share-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 10px;
+    border-radius: var(--radius);
+    border: none;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s;
+    color: #fff;
+  }
+  .share-btn:hover { opacity: 0.85; }
+  .share-btn:active { transform: scale(0.98); }
+  .share-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+  .share-btn.instagram { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
+  .share-btn.twitter { background: #000; border: 1px solid #333; }
+  .share-btn.facebook { background: #1877f2; }
+
+  .download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid #333;
+    color: #aaa;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    margin-top: 10px;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .download-btn:hover { border-color: #555; color: #fff; }
+  .download-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  .start-over-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #aaa;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 10px 28px;
+    border-radius: 6px;
+    display: block;
+    margin: 24px auto 0;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .start-over-btn:hover {
+    border-color: var(--m1-red);
+    color: #fff;
+  }
+
+  /* ── Footer ── */
+  footer {
+    background: #080808;
+    border-top: 1px solid #1e1e1e;
+    padding: 20px 24px;
+    text-align: center;
+    font-size: 11px;
+    color: #333;
+    letter-spacing: 0.5px;
+  }
+  footer a { color: #d0021b; text-decoration: none; }
+
+  /* ── Marquee ── */
+  .marquee-section {
+    width: 100%;
+    background: #0a0a0a;
+    border-top: 1px solid #1a1a1a;
+    padding: 24px 0;
+    overflow: hidden;
+  }
+  .marquee-label {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #333;
+    margin-bottom: 16px;
+  }
+  .marquee-track-wrap {
+    overflow: hidden;
+    width: 100%;
+  }
+  .marquee-track {
+    display: flex;
+    gap: 12px;
+    animation: marquee-scroll 40s linear infinite;
+    width: max-content;
+  }
+  .marquee-track:hover { animation-play-state: paused; }
+  @keyframes marquee-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee-img {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+  }
+  .marquee-img:hover { opacity: 1; }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 26px; }
+    .class-grid { grid-template-columns: repeat(2, 1fr); }
+    .share-buttons { grid-template-columns: 1fr; }
+    .steps-bar { gap: 0; }
+    .step-item { padding: 8px 10px; font-size: 10px; }
+    .photo-options { grid-template-columns: 1fr 1fr; }
+    .camera-controls { gap: 10px; }
+    .capture-btn { width: 60px; height: 60px; font-size: 22px; }
+    #camera-video { max-width: 280px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- T&C Consent Modal -->
+<div class="tc-overlay" id="tc-overlay">
+  <div class="tc-modal">
+    <h2>Before You Generate</h2>
+    <div class="tc-sub">M1 Concourse · American Speed Festival · AI Qualifying Board</div>
+    <div class="tc-scroll">
+      <h4>1. Consent to Use Your Likeness</h4>
+      By proceeding, you consent to uploading your photo to generate an AI-composited image ("Qualifying Board Card") showing your photo on a mocked-up trackside timing tower with a fictional qualifying lap time, for personal, non-commercial social media sharing purposes related to the American Speed Festival at M1 Concourse.
+
+      <h4>2. AI-Generated Content</h4>
+      The Qualifying Board Card is created using artificial intelligence and does not represent a real photograph, a real qualifying session, or a real lap time. The image and lap time are synthetic and generated solely for entertainment purposes.
+
+      <h4>3. Photo Storage & Privacy</h4>
+      Your uploaded photo is processed in real time to generate the Qualifying Board Card. Photos are not stored on M1 Concourse servers beyond the duration of the generation process. Images are transmitted to a third-party AI service (fal.ai) solely for generation purposes.
+
+      <h4>4. Prohibited Uses</h4>
+      You agree not to use the generated image for commercial purposes, to misrepresent the image or lap time as real, to harass or defame any individual, or for any unlawful purpose.
+
+      <h4>5. Ownership</h4>
+      M1 Concourse retains rights to the generated image format and branding. You retain rights to your own likeness. Generated images may be used by M1 Concourse for promotional purposes with your consent indicated by proceeding.
+
+      <h4>6. Age Requirement</h4>
+      You confirm that you are 13 years of age or older. If you are under 18, you confirm you have parental or guardian consent to participate.
+
+      <h4>7. Limitation of Liability</h4>
+      M1 Concourse and the American Speed Festival are not liable for any damages arising from the use or sharing of AI-generated images produced by this tool.
+    </div>
+    <div class="tc-checkbox-row">
+      <input type="checkbox" id="tc-check" />
+      <label for="tc-check">I have read and agree to the terms above. I consent to my photo being used to generate an AI qualifying board card. I understand the image and lap time are <strong>AI-generated and fictional</strong>, not a real photograph or real result.</label>
+    </div>
+    <button class="btn-primary" id="tc-agree-btn" disabled>Agree & Continue</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT (hidden until T&C agreed) -->
+<div id="main-content">
+
+<!-- HEADER -->
+<header>
+  <div class="logo-box">
+    <img src="https://cdn.prod.website-files.com/67f16098a1aa4919ed9037c0/6a3550a889834638c851f6ac_M1%20Horizontal%20Red%20White.png" alt="M1 Concourse" class="header-logo" id="header-logo" />
+  </div>
+  <div class="event-badge">American Speed Festival</div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Fan Experience</div>
+  <h1>Your Face.<br><em>Your Lap Time.</em></h1>
+  <p>Upload your photo, pick a class, and see your name light up a mocked-up qualifying board — complete with a fake lap time straight off the timing tower.</p>
+</div>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="step-item active" id="step-ind-1"><div class="step-num">1</div> Your Photo</div>
+  <div class="step-item" id="step-ind-2"><div class="step-num">2</div> Choose Class</div>
+  <div class="step-item" id="step-ind-3"><div class="step-num">3</div> Share</div>
+</div>
+
+<main>
+
+  <!-- PANEL 1: Photo -->
+  <div class="panel active" id="panel-1">
+    <p class="section-label">Step 1 — Get your photo</p>
+
+    <!-- Option chooser -->
+    <div class="photo-options" id="photo-options">
+      <button class="photo-option-btn" id="opt-camera" type="button">
+        <div class="photo-option-icon">📷</div>
+        <div class="photo-option-title">Take a Selfie</div>
+        <div class="photo-option-sub">Use your camera right now</div>
+      </button>
+      <button class="photo-option-btn" id="opt-upload" type="button">
+        <div class="photo-option-icon">🖼️</div>
+        <div class="photo-option-title">Upload a Photo</div>
+        <div class="photo-option-sub">Choose from your device</div>
+      </button>
+    </div>
+
+    <!-- Camera viewfinder -->
+    <div class="camera-wrap" id="camera-wrap">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <canvas id="camera-canvas"></canvas>
+      <div class="camera-controls">
+        <button class="camera-cancel-btn" id="camera-cancel-btn" type="button">Cancel</button>
+        <button class="capture-btn" id="capture-btn" type="button" title="Take photo">📸</button>
+        <button class="flip-btn" id="flip-btn" type="button">Flip</button>
+      </div>
+    </div>
+
+    <!-- Upload drop zone -->
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="fan-photo-input" accept="image/*" />
+      <div class="upload-icon">🖼️</div>
+      <div class="upload-title">Tap to choose a photo</div>
+      <div class="upload-sub">JPG or PNG &nbsp;·&nbsp; <strong>Your face will be composited onto the qualifying board</strong></div>
+    </div>
+
+    <!-- Preview -->
+    <div class="preview-wrap" id="preview-wrap">
+      <img id="fan-preview" src="" alt="Your selfie preview" />
+      <div class="preview-actions">
+        <button class="change-btn" id="retake-btn" type="button">Retake</button>
+        <button class="change-btn" id="change-photo-btn" type="button">Upload instead</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="next-to-step2" disabled>Next — Choose a Class</button>
+  </div>
+
+  <!-- PANEL 2: Choose Class -->
+  <div class="panel" id="panel-2">
+    <p class="section-label">Step 2 — Which class are you qualifying in?</p>
+    <div class="class-grid" id="class-grid"></div>
+    <button class="btn-primary" id="generate-btn" disabled>Generate My Qualifying Board ⚡</button>
+    <button class="btn-outline" id="back-to-step1">← Back</button>
+  </div>
+
+  <!-- PANEL 3: Generating -->
+  <div class="panel" id="panel-generating">
+    <div class="generating-screen">
+      <div class="spinner-track"></div>
+      <div class="gen-title">Setting your lap time…</div>
+      <div class="gen-sub" id="gen-status">Analyzing your photo with AI</div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: Result -->
+  <div class="panel" id="panel-result">
+    <p class="section-label">Step 3 — Your Qualifying Board</p>
+    <div id="result-canvas-wrap">
+      <!-- Logo + event name above image -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <img src="https://cdn.prod.website-files.com/67f16098a1aa4919ed9037c0/6a3550a889834638c851f6ac_M1%20Horizontal%20Red%20White.png" style="height:28px; width:auto;" alt="M1 Concourse" />
+        <span style="color:#aaa; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;">American Speed Festival</span>
+      </div>
+
+      <!-- Image — clean, no overlays -->
+      <div id="result-img-wrap" style="border-radius:12px; overflow:hidden; background:#111;">
+        <img id="result-img-fallback" style="width:100%; display:block;" alt="Your AI Qualifying Board" />
+      </div>
+
+      <!-- Lap time readout -->
+      <div class="lap-time-strip">
+        <div class="lap-time-pos" id="result-position">P1</div>
+        <div style="text-align:center;">
+          <div class="lap-time-label">Best Lap</div>
+          <div class="lap-time-value" id="result-lap-time">1:24.837</div>
+        </div>
+        <div class="lap-time-label" id="result-class-label">GT3</div>
+      </div>
+
+      <!-- Name below image -->
+      <div style="background:#161616; border:1px solid #2a2a2a; border-radius:10px; padding:20px 20px 16px; margin-top:12px; text-align:center; display:flex; flex-direction:column; gap:10px;">
+        <div id="result-name-overlay" style="color:#fff; font-size:15px; font-weight:800; letter-spacing:0.5px; line-height:1.3;"></div>
+        <div style="color:#d0021b; font-size:11px; font-weight:600; letter-spacing:1px; line-height:1.6;">#M1Concourse &nbsp;·&nbsp; #AmericanSpeedFestival &nbsp;·&nbsp; #ASF2026</div>
+      </div>
+    </div>
+
+    <div class="ai-caption-box">
+      <div class="ai-caption-label">✦ AI Scene Description</div>
+      <div class="ai-caption-text" id="ai-caption-text">Loading…</div>
+    </div>
+
+    <div class="share-section">
+      <div class="share-label">Share your moment</div>
+      <div class="share-caption-box">
+        <p id="share-caption-preview"></p>
+      </div>
+      <div class="share-buttons">
+        <a class="share-btn instagram" id="share-instagram" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          Instagram
+        </a>
+        <a class="share-btn twitter" id="share-twitter" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          X / Twitter
+        </a>
+        <a class="share-btn facebook" id="share-facebook" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385c5.737-.9 10.125-5.864 10.125-11.854z"/></svg>
+          Facebook
+        </a>
+      </div>
+      <a class="download-btn" id="download-btn" href="#" download="m1-qualifying-board.png">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download Image
+      </a>
+    </div>
+
+    <button class="start-over-btn" id="start-over">↩ Start Over</button>
+  </div>
+
+</main>
+
+<footer>
+  <strong style="color:#555;">M1 Concourse</strong> &nbsp;·&nbsp; 1 Motorsports Dr, Pontiac, MI &nbsp;·&nbsp; <a href="https://m1concourse.com">m1concourse.com</a>
+</footer>
+
+<!-- Marquee of fan qualifying boards -->
+<div class="marquee-section">
+  <div class="marquee-label">Qualifying Boards from the American Speed Festival</div>
+  <div class="marquee-track-wrap">
+    <div class="marquee-track" id="marquee-track">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+</div><!-- end main-content -->
+
+<script>
+// ── Class / Session Roster ────────────────────────────────────────────────
+// The fan's face is composited directly onto the timing tower — no second
+// driver photo is needed, so this is a simple label/flavor picker.
+// Format: { id, name, sub, icon }
+const CLASSES = [
+  { id: "gt3", name: "GT3", sub: "Sports Car", icon: "🏎️" },
+  { id: "prototype", name: "Prototype", sub: "LMP / IMSA", icon: "🏁" },
+  { id: "vintage", name: "Vintage", sub: "Historic Racer", icon: "🏆" },
+  { id: "time_attack", name: "Time Attack", sub: "Track Day", icon: "⏱️" },
+  { id: "drift", name: "Drift", sub: "Formula Drift", icon: "💨" },
+  { id: "burnout", name: "Burnout", sub: "M1 Burnout", icon: "🔥" },
+];
+
+// ── State ────────────────────────────────────────────────────────────────
+let fanPhotoDataURL = null;
+let selectedClass = null;
+let resultDataURL = null;
+let lapTimeText = null;
+let lapPosition = null;
+
+// ── Build class grid ─────────────────────────────────────────────────────
+const grid = document.getElementById('class-grid');
+CLASSES.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'class-card';
+  card.dataset.id = c.id;
+  card.innerHTML = `
+    <div class="class-icon">${c.icon}</div>
+    <div class="class-name">${c.name}</div>
+    <div class="class-sub">${c.sub}</div>
+  `;
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.class-card').forEach(el => el.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedClass = c;
+    document.getElementById('generate-btn').disabled = false;
+  });
+  grid.appendChild(card);
+});
+
+// ── Step navigation ──────────────────────────────────────────────────────
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById(`step-ind-${i}`);
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  });
+}
+
+// ── Photo: elements ──────────────────────────────────────────────────────
+const photoOptions   = document.getElementById('photo-options');
+const optCamera      = document.getElementById('opt-camera');
+const optUpload      = document.getElementById('opt-upload');
+const cameraWrap     = document.getElementById('camera-wrap');
+const cameraVideo    = document.getElementById('camera-video');
+const cameraCanvas   = document.getElementById('camera-canvas');
+const captureBtn     = document.getElementById('capture-btn');
+const flipBtn        = document.getElementById('flip-btn');
+const cameraCancelBtn= document.getElementById('camera-cancel-btn');
+const uploadZone     = document.getElementById('upload-zone');
+const fileInput      = document.getElementById('fan-photo-input');
+const previewWrap    = document.getElementById('preview-wrap');
+const fanPreview     = document.getElementById('fan-preview');
+const retakeBtn      = document.getElementById('retake-btn');
+const changePhotoBtn = document.getElementById('change-photo-btn');
+const nextBtn        = document.getElementById('next-to-step2');
+
+let cameraStream = null;
+let facingMode = 'user'; // front camera default
+
+// ── Show preview ─────────────────────────────────────────────────────────
+function showPreview(dataURL) {
+  fanPhotoDataURL = dataURL;
+  fanPreview.src = dataURL;
+  photoOptions.style.display = 'none';
+  cameraWrap.classList.remove('active');
+  uploadZone.classList.remove('active');
+  previewWrap.style.display = 'flex';
+  nextBtn.disabled = false;
+  stopCamera();
+}
+
+// ── Reset to option chooser ───────────────────────────────────────────────
+function resetToOptions() {
+  fanPhotoDataURL = null;
+  fanPreview.src = '';
+  previewWrap.style.display = 'none';
+  cameraWrap.classList.remove('active');
+  uploadZone.classList.remove('active');
+  photoOptions.style.display = 'grid';
+  nextBtn.disabled = true;
+  fileInput.value = '';
+  stopCamera();
+}
+
+// ── Camera ───────────────────────────────────────────────────────────────
+async function startCamera(facing) {
+  stopCamera();
+  facingMode = facing || facingMode;
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 1280 } },
+      audio: false
+    });
+    cameraVideo.srcObject = cameraStream;
+    // Mirror CSS only for front camera
+    cameraVideo.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+  } catch(err) {
+    alert('Camera access was denied or unavailable. Please allow camera access or use the upload option.');
+    resetToOptions();
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  cameraVideo.srcObject = null;
+}
+
+optCamera.addEventListener('click', () => {
+  photoOptions.style.display = 'none';
+  cameraWrap.classList.add('active');
+  startCamera('user');
+});
+
+cameraCancelBtn.addEventListener('click', resetToOptions);
+
+flipBtn.addEventListener('click', () => {
+  facingMode = facingMode === 'user' ? 'environment' : 'user';
+  startCamera(facingMode);
+});
+
+captureBtn.addEventListener('click', () => {
+  const v = cameraVideo;
+  const size = Math.min(v.videoWidth, v.videoHeight);
+  cameraCanvas.width = size;
+  cameraCanvas.height = size;
+  const ctx = cameraCanvas.getContext('2d');
+  // Center-crop and mirror if front camera
+  const ox = (v.videoWidth - size) / 2;
+  const oy = (v.videoHeight - size) / 2;
+  if (facingMode === 'user') {
+    ctx.translate(size, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(v, ox, oy, size, size, 0, 0, size, size);
+  showPreview(cameraCanvas.toDataURL('image/jpeg', 0.92));
+});
+
+// ── Upload ───────────────────────────────────────────────────────────────
+optUpload.addEventListener('click', () => {
+  photoOptions.style.display = 'none';
+  uploadZone.classList.add('active');
+});
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = e => showPreview(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  handleFile(e.dataTransfer.files[0]);
+});
+
+// ── Preview actions ───────────────────────────────────────────────────────
+retakeBtn.addEventListener('click', () => {
+  resetToOptions();
+  // Re-open camera automatically
+  photoOptions.style.display = 'none';
+  cameraWrap.classList.add('active');
+  startCamera(facingMode);
+});
+
+changePhotoBtn.addEventListener('click', () => {
+  resetToOptions();
+  // Go straight to upload
+  photoOptions.style.display = 'none';
+  uploadZone.classList.add('active');
+  fileInput.click();
+});
+
+// ── Navigation ────────────────────────────────────────────────────────────
+nextBtn.addEventListener('click', () => {
+  showPanel('panel-2');
+  setStep(2);
+});
+
+document.getElementById('back-to-step1').addEventListener('click', () => {
+  showPanel('panel-1');
+  setStep(1);
+});
+
+// ── T&C Modal ─────────────────────────────────────────────────────────────
+const tcOverlay = document.getElementById('tc-overlay');
+const tcCheck = document.getElementById('tc-check');
+const tcAgreeBtn = document.getElementById('tc-agree-btn');
+const mainContent = document.getElementById('main-content');
+
+// Hide main content until T&C agreed — lock scroll on body
+mainContent.style.display = 'none';
+document.body.style.overflow = 'hidden';
+document.documentElement.style.overflow = 'hidden';
+
+tcCheck.addEventListener('change', () => { tcAgreeBtn.disabled = !tcCheck.checked; });
+tcAgreeBtn.addEventListener('click', () => {
+  tcOverlay.style.display = 'none';
+  mainContent.style.display = 'block';
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
+  sendHeight();
+});
+
+// ── API Keys (safe to use directly from Netlify) ──────────────────────────
+const FAL_KEY = 'e97f7c85-68ab-4bf8-94a0-0fa100f3ce33:448a72c973dfce03aedccc72042975ef';
+
+const M1_LOGO = 'https://cdn.prod.website-files.com/67f16098a1aa4919ed9037c0/6a3550a889834638c851f6ac_M1%20Horizontal%20Red%20White.png';
+// ── Set M1 logo in header immediately after declaration ──────────────────
+(function() {
+  const logoEls = document.querySelectorAll('.m1-logo-img');
+  logoEls.forEach(el => el.src = M1_LOGO);
+  const headerLogo = document.getElementById('header-logo');
+  if (headerLogo) headerLogo.src = M1_LOGO;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      const h = document.getElementById('header-logo');
+      if (h) h.src = M1_LOGO;
+    });
+  }
+})();
+
+// Reference photo of a trackside qualifying / timing tower board used as the
+// generation background plate.
+const BOARD_BG = 'data:image/jpeg;base64,PLACEHOLDER_TIMING_TOWER_BACKGROUND';
+
+// ── Fake lap time generator ─────────────────────────────────────────────
+// Produces a plausible-looking lap time (m:ss.mmm) and grid position per
+// selected class. Purely cosmetic / fictional — flagged as such in the T&C
+// and in the on-image caption.
+const CLASS_LAP_RANGES = {
+  gt3:         { min: 83, max: 96 },   // ~1:23–1:36
+  prototype:   { min: 76, max: 88 },   // ~1:16–1:28
+  vintage:     { min: 95, max: 112 },  // ~1:35–1:52
+  time_attack: { min: 90, max: 104 },
+  drift:       { min: 60, max: 74 },   // shorter judged run "time"
+  burnout:     { min: 8,  max: 14 },   // seconds, burnout run
+};
+
+function formatLapTime(totalSeconds, classId) {
+  const ms = Math.floor((totalSeconds % 1) * 1000);
+  const whole = Math.floor(totalSeconds);
+  if (classId === 'burnout') {
+    // short runs shown as straight seconds
+    return `${whole}.${String(ms).padStart(3,'0')}s`;
+  }
+  const m = Math.floor(whole / 60);
+  const s = whole % 60;
+  return `${m}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
+}
+
+function generateFakeLapTime(classId) {
+  const range = CLASS_LAP_RANGES[classId] || CLASS_LAP_RANGES.gt3;
+  const totalSeconds = range.min + Math.random() * (range.max - range.min);
+  const position = 1 + Math.floor(Math.random() * 12); // P1–P12
+  return {
+    lapTime: formatLapTime(totalSeconds, classId),
+    position: `P${position}`,
+  };
+}
+
+// ── AI Generation ────────────────────────────────────────────────────────
+document.getElementById('generate-btn').addEventListener('click', generateQualifyingBoard);
+
+const GEN_STATUSES = [
+  'Sending your photo to fal.ai…',
+  'AI is building your timing tower…',
+  'Setting your qualifying lap time…',
+  'Adding trackside atmosphere…',
+  'Finalizing your qualifying board…'
+];
+
+async function generateQualifyingBoard() {
+  if (!fanPhotoDataURL || !selectedClass) return;
+
+  showPanel('panel-generating');
+  setStep(3);
+
+  const statusEl = document.getElementById('gen-status');
+  let si = 0;
+  const statusInterval = setInterval(() => {
+    si = (si + 1) % GEN_STATUSES.length;
+    statusEl.textContent = GEN_STATUSES[si];
+  }, 3000);
+
+  try {
+    statusEl.textContent = 'AI is building your timing tower…';
+
+    // ── Step 1: Resize fan photo ─────────────────────────────────────────
+    async function resizeToDataURL(dataURL, maxSize = 1024) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.88));
+        };
+        img.src = dataURL;
+      });
+    }
+
+    const fanResized = await resizeToDataURL(fanPhotoDataURL, 1024);
+
+    // ── Step 2: Roll a fake lap time / grid position for this class ───────
+    const { lapTime, position } = generateFakeLapTime(selectedClass.id);
+    lapTimeText = lapTime;
+    lapPosition = position;
+
+    // ── Step 3: Send fan photo directly to fal.ai kontext ─────────────────
+    statusEl.textContent = 'AI is building your timing tower…';
+
+    const promptText = `Photorealistic photo of a large trackside qualifying results / timing tower screen at a race track, glowing LED scoreboard style with green and amber digits. The fan from image 1 appears in a round driver headshot tile on the leaderboard, positioned at grid slot ${position}, next to a bold readout of the lap time "${lapTime}" and the class label "${selectedClass.name.toUpperCase()}". CRITICAL: Preserve the fan's EXACT skin tone, ethnicity, facial features, hair color, hair texture, and overall appearance from image 1 without altering them — only place their likeness into the headshot tile on the board. Background shows a blurred race track paddock with race cars and grandstands at golden hour, motorsport event atmosphere, cinematic lighting, high detail, 4k.`;
+
+    const falResp = await fetch('https://queue.fal.run/fal-ai/flux-pro/kontext/multi', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: promptText,
+        image_urls: [fanResized, BOARD_BG],
+        num_images: 1,
+        image_size: 'square_hd',
+        guidance_scale: 4,
+        safety_tolerance: '2'
+      })
+    });
+
+    if (!falResp.ok) {
+      const errText = await falResp.text();
+      throw new Error(`fal.ai error ${falResp.status}: ${errText}`);
+    }
+
+    // fal queue returns a request_id — poll for result
+    const queueData = await falResp.json();
+    statusEl.textContent = 'Waiting for AI to finish…';
+    if (!queueData.request_id) throw new Error('No request_id from fal.ai: ' + JSON.stringify(queueData));
+    const generatedImageUrl = await pollFalResult(queueData.request_id, queueData.status_url, queueData.response_url);
+
+    // ── Step 4: Generate caption locally (no API needed) ──────────────────
+    statusEl.textContent = 'Writing your caption…';
+
+    const captionTemplates = [
+      `Topped the board with a ${lapTimeText} in ${selectedClass.name} at the American Speed Festival — ${lapPosition}! 🏁`,
+      `Set the pace on the qualifying board at @m1concourse — ${lapTimeText} in ${selectedClass.name}, sitting ${lapPosition}! 🏁`,
+      `Lit up the timing tower at the American Speed Festival — ${lapTimeText}, ${lapPosition} in ${selectedClass.name}! 🏁`,
+      `Qualifying board says it all — ${lapPosition}, ${lapTimeText}, ${selectedClass.name} class at M1 Concourse! 🏁`,
+      `American Speed Festival qualifying moment I'll never forget — ${lapTimeText} good for ${lapPosition}! 🏁`
+    ];
+    const caption = captionTemplates[Math.floor(Math.random() * captionTemplates.length)];
+    const scene = `A fan's face on a glowing trackside qualifying board at M1 Concourse during the American Speed Festival, showing ${lapPosition} with a lap time of ${lapTimeText} in the ${selectedClass.name} class, race cars blurred in the background.`;
+
+    clearInterval(statusInterval);
+
+    // ── Step 5: Show the generated image directly ──────────────────────────
+    // Canvas CORS blocks fal.ai CDN images; the lap-time strip below the
+    // image is rendered with plain HTML/CSS instead of baked into a canvas.
+    resultDataURL = generatedImageUrl;
+
+    // ── Populate result panel ─────────────────────────────────────────────
+    document.getElementById('ai-caption-text').textContent = scene;
+    document.getElementById('result-position').textContent = lapPosition;
+    document.getElementById('result-lap-time').textContent = lapTimeText;
+    document.getElementById('result-class-label').textContent = selectedClass.name;
+
+    const fullCaption = `${caption} 🏁\n\n#M1Concourse #AmericanSpeedFestival #${selectedClass.name.replace(/\s/g,'')} #ASF2026 @m1concourse`;
+    document.getElementById('share-caption-preview').textContent = fullCaption;
+
+    const encodedCaption = encodeURIComponent(fullCaption);
+    const pageUrl = encodeURIComponent(window.location.href);
+    document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?text=${encodedCaption}&url=${pageUrl}`;
+    document.getElementById('share-facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}&quote=${encodedCaption}`;
+
+    const igBtn = document.getElementById('share-instagram');
+    igBtn.onclick = null;
+    igBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigator.clipboard.writeText(fullCaption).catch(()=>{});
+      downloadResult();
+      alert('Image saved! Caption copied to clipboard.\n\nOpen Instagram, create a new post, paste the caption, and tag @m1concourse.');
+    });
+
+    const dlBtn = document.getElementById('download-btn');
+    dlBtn.onclick = null;
+    dlBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        // Fetch the image and trigger a real download
+        const resp = await fetch(resultDataURL);
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'm1-qualifying-board.jpg';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      } catch(err) {
+        // Fallback: open in new tab
+        window.open(resultDataURL, '_blank');
+      }
+    });
+
+    const nameOverlay = document.getElementById('result-name-overlay');
+    if (nameOverlay) {
+      nameOverlay.textContent = `Your qualifying board — ${selectedClass.name}`;
+    }
+
+    // Save to marquee gallery
+    saveQualifyingCard(resultDataURL);
+    buildMarquee();
+
+    // Show generated image directly in img tag
+    const fallbackImg = document.getElementById('result-img-fallback');
+    if (fallbackImg) {
+      fallbackImg.src = resultDataURL;
+    }
+
+    showPanel('panel-result');
+    sendHeight();
+
+  } catch(err) {
+    clearInterval(statusInterval);
+    console.error(err);
+    const msg = err.message || '';
+    if (msg.includes('401') || msg.includes('403')) {
+      alert('API key error. Please contact the event organizer.');
+    } else {
+      alert('Something went wrong generating your qualifying board. Please try again.\n\n' + msg);
+    }
+    showPanel('panel-2');
+    setStep(2);
+  }
+}
+
+// ── fal.ai helpers (direct calls — works from Netlify) ───────────────────
+
+async function uploadToFal(blob, filename) {
+  const resp = await fetch('https://rest.fal.run/storage/upload/initiate', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Key ${FAL_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ file_name: filename, content_type: blob.type || 'image/jpeg' })
+  });
+  if (!resp.ok) throw new Error(`fal.ai upload initiate failed: ${resp.status}`);
+  const { upload_url, file_url } = await resp.json();
+
+  const putResp = await fetch(upload_url, {
+    method: 'PUT',
+    headers: { 'Content-Type': blob.type || 'image/jpeg' },
+    body: blob
+  });
+  if (!putResp.ok) throw new Error(`fal.ai upload PUT failed: ${putResp.status}`);
+  return file_url;
+}
+
+async function pollFalResult(requestId, statusUrl, responseUrl) {
+  const maxWait = 120000;
+  const startTime = Date.now();
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  // Use the URLs returned by fal.ai directly, fall back to constructed URLs
+  const pollUrl = statusUrl || `https://queue.fal.run/fal-ai/flux-pro/kontext/multi/requests/${requestId}/status`;
+  const resultUrl = responseUrl || `https://queue.fal.run/fal-ai/flux-pro/kontext/multi/requests/${requestId}`;
+
+  while (Date.now() - startTime < maxWait) {
+    await delay(3000);
+    const resp = await fetch(pollUrl, {
+      headers: { 'Authorization': `Key ${FAL_KEY}` }
+    });
+    if (!resp.ok) throw new Error(`fal.ai poll failed: ${resp.status}`);
+    const data = await resp.json();
+
+    if (data.status === 'COMPLETED') {
+      const resultResp = await fetch(resultUrl, {
+        headers: { 'Authorization': `Key ${FAL_KEY}` }
+      });
+      if (!resultResp.ok) throw new Error(`fal.ai result fetch failed: ${resultResp.status}`);
+      const result = await resultResp.json();
+      const imgUrl = result?.images?.[0]?.url || result?.image?.url;
+      if (!imgUrl) throw new Error('No image URL in fal.ai response: ' + JSON.stringify(result));
+      return imgUrl;
+    }
+    if (data.status === 'FAILED') {
+      throw new Error('fal.ai generation failed: ' + (data.error || JSON.stringify(data)));
+    }
+    // IN_QUEUE or IN_PROGRESS — keep polling
+  }
+  throw new Error('fal.ai timed out after 2 minutes');
+}
+
+function dataURLtoBlob(dataURL) {
+  const [header, data] = dataURL.split(',');
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(data);
+  const arr = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+function downloadResult() {
+  if (!resultDataURL) return;
+  const a = document.createElement('a');
+  a.download = `m1-qualifying-board-${Date.now()}.png`;
+  a.href = resultDataURL;
+  a.click();
+}
+
+// ── Start over ──────────────────────────────────────────────────────────
+document.getElementById('start-over').addEventListener('click', () => {
+  selectedClass = null;
+  resultDataURL = null;
+  lapTimeText = null;
+  lapPosition = null;
+  document.getElementById('generate-btn').disabled = true;
+  document.querySelectorAll('.class-card').forEach(c => c.classList.remove('selected'));
+  resetToOptions();
+  showPanel('panel-1');
+  setStep(1);
+});
+
+// ── Marquee — fan qualifying board gallery ─────────────────────────────────
+const MARQUEE_KEY = 'm1_asf_qualifying_boards';
+const SEED_IMAGES = []; // Will fill with real fan qualifying boards as they are generated
+
+function getSavedCards() {
+  try {
+    return JSON.parse(localStorage.getItem(MARQUEE_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveQualifyingCard(url) {
+  try {
+    const saved = getSavedCards();
+    // Only store CDN URLs, not data URIs
+    if (url && url.startsWith('http') && !saved.includes(url)) {
+      saved.unshift(url);
+      // Keep last 30
+      localStorage.setItem(MARQUEE_KEY, JSON.stringify(saved.slice(0, 30)));
+    }
+  } catch(e) {}
+}
+
+function buildMarquee() {
+  const track = document.getElementById('marquee-track');
+  const section = document.querySelector('.marquee-section');
+  if (!track || !section) return;
+  const saved = getSavedCards();
+  if (saved.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  // Duplicate for seamless loop
+  const doubled = [...saved, ...saved];
+  track.innerHTML = doubled.map(url =>
+    `<img class="marquee-img" src="${url}" alt="Fan qualifying board" loading="lazy" onerror="this.style.display='none'" />`
+  ).join('');
+}
+
+buildMarquee();
+
+// ── Auto-height: tell parent iframe how tall we are ───────────────────────
+function sendHeight() {
+  // Use the last visible child's bottom edge for precise height
+  const children = document.body.children;
+  let h = 0;
+  for (let i = 0; i < children.length; i++) {
+    const rect = children[i].getBoundingClientRect();
+    const bottom = rect.bottom + window.scrollY;
+    if (bottom > h) h = bottom;
+  }
+  h = Math.ceil(h) + 8; // small buffer to avoid scrollbar
+  window.parent.postMessage({ type: 'm1-selfie-height', height: h }, '*');
+}
+new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load', sendHeight);
+</script>
+
+</body>
+</html>
