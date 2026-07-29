@@ -1148,8 +1148,9 @@ tcAgreeBtn.addEventListener('click', () => {
   sendHeight();
 });
 
-// ── API Keys (safe to use directly from Netlify) ──────────────────────────
-const FAL_KEY = '4868ac32-1c5e-47e1-87e3-389b76c3ce5c:baa37549cd059c6cc763c85ac2a74eff';
+// fal.ai calls now go through the /api/fal-proxy serverless function — the
+// API key lives only in the Vercel project's environment variables and is
+// never sent to the browser. See api/fal-proxy.js.
 
 const M1_LOGO = 'https://cdn.prod.website-files.com/67f16098a1aa4919ed9037c0/6a3550a889834638c851f6ac_M1%20Horizontal%20Red%20White.png';
 // ── Set M1 logo in header immediately after declaration ──────────────────
@@ -1329,19 +1330,22 @@ async function generateQualifyingBoard() {
     // placeholder here causes fal.ai to reject the request (422).
     const imageUrls = BOARD_BG ? [fanResized, BOARD_BG] : [fanResized];
 
-    const falResp = await fetch('https://queue.fal.run/fal-ai/flux-pro/kontext/multi', {
+    const falResp = await fetch('/api/fal-proxy', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${FAL_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        prompt: promptText,
-        image_urls: imageUrls,
-        num_images: 1,
-        image_size: 'square_hd',
-        guidance_scale: 4,
-        safety_tolerance: '2'
+        targetUrl: 'https://queue.fal.run/fal-ai/flux-pro/kontext/multi',
+        method: 'POST',
+        body: {
+          prompt: promptText,
+          image_urls: imageUrls,
+          num_images: 1,
+          image_size: 'square_hd',
+          guidance_scale: 4,
+          safety_tolerance: '2'
+        }
       })
     });
 
@@ -1451,16 +1455,17 @@ async function generateQualifyingBoard() {
   }
 }
 
-// ── fal.ai helpers (direct calls — works from Netlify) ───────────────────
+// ── fal.ai helpers — all routed through /api/fal-proxy (key stays server-side) ──
 
 async function uploadToFal(blob, filename) {
-  const resp = await fetch('https://rest.fal.run/storage/upload/initiate', {
+  const resp = await fetch('/api/fal-proxy', {
     method: 'POST',
-    headers: {
-      'Authorization': `Key ${FAL_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ file_name: filename, content_type: blob.type || 'image/jpeg' })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      targetUrl: 'https://rest.fal.run/storage/upload/initiate',
+      method: 'POST',
+      body: { file_name: filename, content_type: blob.type || 'image/jpeg' }
+    })
   });
   if (!resp.ok) throw new Error(`fal.ai upload initiate failed: ${resp.status}`);
   const { upload_url, file_url } = await resp.json();
@@ -1485,15 +1490,19 @@ async function pollFalResult(requestId, statusUrl, responseUrl) {
 
   while (Date.now() - startTime < maxWait) {
     await delay(3000);
-    const resp = await fetch(pollUrl, {
-      headers: { 'Authorization': `Key ${FAL_KEY}` }
+    const resp = await fetch('/api/fal-proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUrl: pollUrl, method: 'GET' })
     });
     if (!resp.ok) throw new Error(`fal.ai poll failed: ${resp.status}`);
     const data = await resp.json();
 
     if (data.status === 'COMPLETED') {
-      const resultResp = await fetch(resultUrl, {
-        headers: { 'Authorization': `Key ${FAL_KEY}` }
+      const resultResp = await fetch('/api/fal-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUrl: resultUrl, method: 'GET' })
       });
       if (!resultResp.ok) throw new Error(`fal.ai result fetch failed: ${resultResp.status}`);
       const result = await resultResp.json();
